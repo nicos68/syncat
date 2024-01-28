@@ -1,4 +1,5 @@
 use clap::{ArgAction, Parser};
+use clap_serde_derive::ClapSerde;
 use std::fs;
 use std::io::{self, Read};
 use std::path::{Path, PathBuf};
@@ -66,6 +67,15 @@ pub struct Opts {
 
     #[command(subcommand)]
     command: Option<Subcommand>,
+
+    #[command(flatten)]
+    config: Config,
+}
+
+#[derive(Parser, Debug, Clone)]
+pub struct Config {
+    #[arg(short = 'x', long)]
+    foo: Option<String>,
 }
 
 #[derive(Parser, Debug)]
@@ -107,16 +117,19 @@ struct Syncat {
     opts: Opts,
     meta_style: MetaStylesheet,
     lang_map: LangMap,
+    config: Config,
 }
 
 impl Syncat {
     fn new(opts: Opts) -> error::Result<Self> {
         let lang_map = LangMap::open()?;
         let meta_style = MetaStylesheet::from_file()?;
+        let config = opts.config.clone();
         Ok(Self {
             opts,
             lang_map,
             meta_style,
+            config,
         })
     }
 
