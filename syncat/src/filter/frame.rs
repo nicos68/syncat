@@ -1,16 +1,16 @@
-use crate::{Line, MetaStylesheet, Opts};
+use crate::{Config, Line, MetaStylesheet, Opts};
 use std::path::Path;
 use terminal_size::terminal_size;
 
 pub fn frame_header(
     (index, _count): (usize, usize),
     &Opts {
-        frame,
         git,
         numbered,
         numbered_nonblank,
         ..
     }: &Opts,
+    &Config { frame, .. }: &Config,
     source: Vec<Line>,
     path: Option<&Path>,
     style: &MetaStylesheet,
@@ -85,12 +85,12 @@ pub fn frame_header(
 pub fn frame_footer(
     (index, count): (usize, usize),
     &Opts {
-        frame,
         git,
         numbered,
         numbered_nonblank,
         ..
     }: &Opts,
+    &Config { frame, .. }: &Config,
     source: Vec<Line>,
     _path: Option<&Path>,
     style: &MetaStylesheet,

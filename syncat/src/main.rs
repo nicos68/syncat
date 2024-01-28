@@ -25,10 +25,6 @@ use meta_stylesheet::MetaStylesheet;
 #[clap(name = "syncat")]
 #[clap(rename_all = "kebab-case")]
 pub struct Opts {
-    /// Level of framing around each file. Repeat for bigger frame
-    #[arg(short, long, action=ArgAction::Count)]
-    frame: u8,
-
     /// Use Git to show recent changes
     #[arg(short, long)]
     git: bool,
@@ -74,8 +70,9 @@ pub struct Opts {
 
 #[derive(Parser, Debug, Clone)]
 pub struct Config {
-    #[arg(short = 'x', long)]
-    foo: Option<String>,
+    /// Level of framing around each file. Repeat for bigger frame
+    #[arg(short, long, action=ArgAction::Count)]
+    frame: u8,
 }
 
 #[derive(Parser, Debug)]
@@ -197,7 +194,7 @@ impl Syncat {
         sources: impl IntoIterator<Item = Result<Source<'a>>> + ExactSizeIterator,
     ) -> crate::Result<()> {
         let count = sources.len();
-        let mut line_numbers = filter::line_numbers(&self.opts);
+        let mut line_numbers = filter::line_numbers(&self.opts, &self.opts.config);
         for (index, source) in sources.into_iter().enumerate() {
             let Source {
                 language,
@@ -218,6 +215,7 @@ impl Syncat {
                     let lines = filter::frame_header(
                         (index, count),
                         &self.opts,
+                        &self.opts.config,
                         lines,
                         path,
                         &self.meta_style,
@@ -228,6 +226,7 @@ impl Syncat {
                     let _ = filter::frame_footer(
                         (index, count),
                         &self.opts,
+                        &self.opts.config,
                         lines,
                         path,
                         &self.meta_style,
