@@ -1,6 +1,8 @@
-use clap_serde_derive::clap::Parser;
-use clap_serde_derive::clap::ArgAction;
+use clap_serde_derive::clap::{ArgAction, Parser};
+use clap_serde_derive::serde::Deserialize;
+use clap_serde_derive::ClapSerde;
 use std::fs;
+use std::fs::File;
 use std::io::{self, Read};
 use std::path::{Path, PathBuf};
 
@@ -21,7 +23,10 @@ use line::Line;
 use meta_stylesheet::MetaStylesheet;
 
 /// Syntax aware cat utility.
-#[derive(Parser, Debug)]
+#[derive(Parser)]
+// ClapSerde’s proc macros must be kept separate
+#[rustfmt::skip]
+#[derive(Debug)]
 #[clap(name = "syncat")]
 #[clap(rename_all = "kebab-case")]
 pub struct Opts {
@@ -65,10 +70,13 @@ pub struct Opts {
     command: Option<Subcommand>,
 
     #[command(flatten)]
-    config: Config,
+    config: <Config as ClapSerde>::Opt,
 }
 
-#[derive(Parser, Debug, Clone)]
+#[derive(ClapSerde, Deserialize)]
+// ClapSerde’s proc macros must be kept separate
+#[rustfmt::skip]
+#[derive(Debug)]
 pub struct Config {
     /// Level of framing around each file. Repeat for bigger frame
     #[arg(short, long, action=ArgAction::Count)]
@@ -118,10 +126,9 @@ struct Syncat {
 }
 
 impl Syncat {
-    fn new(opts: Opts) -> error::Result<Self> {
+    fn new(opts: Opts, config: Config) -> error::Result<Self> {
         let lang_map = LangMap::open()?;
         let meta_style = MetaStylesheet::from_file()?;
-        let config = opts.config.clone();
         Ok(Self {
             opts,
             lang_map,
@@ -194,7 +201,7 @@ impl Syncat {
         sources: impl IntoIterator<Item = Result<Source<'a>>> + ExactSizeIterator,
     ) -> crate::Result<()> {
         let count = sources.len();
-        let mut line_numbers = filter::line_numbers(&self.opts, &self.opts.config);
+        let mut line_numbers = filter::line_numbers(&self.opts, &self.config);
         for (index, source) in sources.into_iter().enumerate() {
             let Source {
                 language,
@@ -215,7 +222,7 @@ impl Syncat {
                     let lines = filter::frame_header(
                         (index, count),
                         &self.opts,
-                        &self.opts.config,
+                        &self.config,
                         lines,
                         path,
                         &self.meta_style,
@@ -226,7 +233,7 @@ impl Syncat {
                     let _ = filter::frame_footer(
                         (index, count),
                         &self.opts,
-                        &self.opts.config,
+                        &self.config,
                         lines,
                         path,
                         &self.meta_style,
@@ -243,7 +250,14 @@ impl Syncat {
 }
 
 fn try_main() -> error::Result<()> {
-    let opts = Opts::parse();
+    let mut opts = Opts::parse();
+    let config = if let Ok(mut config_file) = File::open(dirs::config().join("syncat.toml")) {
+        let mut config_contents = String::new();
+        config_file.read_to_string(&mut config_contents).unwrap();
+        toml::from_str(&config_contents).unwrap()
+    } else {
+        Config::from(&mut opts.config)
+    };
     match &opts.command {
         Some(subcommand) => package_manager::main(subcommand),
         None if opts.files.is_empty() && opts.language.is_none() => {
@@ -269,7 +283,7 @@ fn try_main() -> error::Result<()> {
             stdin
                 .read_to_string(&mut source)
                 .map_err(|er| crate::Error::new("could not read stdin").with_source(er))?;
-            let syncat = Syncat::new(opts)?;
+            let syncat = Syncat::new(opts, config)?;
             syncat.print(std::iter::once(Ok(Source {
                 language: None,
                 source,
@@ -296,7 +310,7 @@ fn try_main() -> error::Result<()> {
                     path: Some(path.as_ref()),
                 })
             });
-            let syncat = Syncat::new(opts)?;
+            let syncat = Syncat::new(opts, config)?;
             syncat.print(sources)
         }
     }
