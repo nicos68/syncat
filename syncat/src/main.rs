@@ -1,5 +1,5 @@
-use clap::{ArgAction, Parser};
-use clap_serde_derive::ClapSerde;
+use clap_serde_derive::clap::Parser;
+use clap_serde_derive::clap::ArgAction;
 use std::fs;
 use std::io::{self, Read};
 use std::path::{Path, PathBuf};
