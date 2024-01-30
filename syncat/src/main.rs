@@ -254,7 +254,9 @@ fn try_main() -> error::Result<()> {
     let config = if let Ok(mut config_file) = File::open(dirs::config().join("syncat.toml")) {
         let mut config_contents = String::new();
         config_file.read_to_string(&mut config_contents).unwrap();
-        toml::from_str(&config_contents).unwrap()
+        let config_from_file =
+            Config::from(toml::from_str::<<Config as ClapSerde>::Opt>(&config_contents).unwrap());
+        workaround_for_clap_serde(&mut opts, config_from_file)
     } else {
         Config::from(&mut opts.config)
     };
@@ -314,6 +316,17 @@ fn try_main() -> error::Result<()> {
             syncat.print(sources)
         }
     }
+}
+
+fn workaround_for_clap_serde(opts: &mut Opts, config_from_file: Config) -> Config {
+    let frame_value = if opts.config.frame != Some(0) {
+        opts.config.frame.unwrap_or(config_from_file.frame)
+    } else {
+        config_from_file.frame
+    };
+    let mut config = config_from_file.merge(&mut opts.config);
+    config.frame = frame_value;
+    config
 }
 
 fn main() {
