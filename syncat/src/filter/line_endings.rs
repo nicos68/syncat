@@ -1,13 +1,11 @@
 use crate::line::Line;
-use crate::Opts;
+use crate::Config;
 
 pub fn line_endings(
-    &Opts {
-        show_line_endings, ..
-    }: &Opts,
+    config: &Config,
     source: Vec<Line>,
 ) -> Vec<Line> {
-    if show_line_endings {
+    if config.show_line_endings {
         source.into_iter().map(Line::with_line_ending).collect()
     } else {
         source

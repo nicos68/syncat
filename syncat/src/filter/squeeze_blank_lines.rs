@@ -1,8 +1,8 @@
 use crate::line::Line;
-use crate::Opts;
+use crate::Config;
 
-pub fn squeeze_blank_lines(&Opts { squeeze, .. }: &Opts, source: Vec<Line>) -> Vec<Line> {
-    if squeeze {
+pub fn squeeze_blank_lines(config: &Config, source: Vec<Line>) -> Vec<Line> {
+    if config.squeeze {
         source
             .into_iter()
             .scan(false, |was_blank, line| {

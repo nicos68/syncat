@@ -1,5 +1,5 @@
+use clap_serde_derive::clap;
 use clap_serde_derive::clap::{ArgAction, Parser};
-use clap_serde_derive::serde::Deserialize;
 use clap_serde_derive::ClapSerde;
 use std::fs;
 use std::fs::File;
@@ -34,14 +34,6 @@ pub struct Opts {
     #[arg(short, long)]
     git: bool,
 
-    /// Squeeze consecutive blank lines into one
-    #[arg(short, long)]
-    squeeze: bool,
-
-    /// Show line endings
-    #[arg(short = 'e', long = "endings")]
-    show_line_endings: bool,
-
     /// Number non-empty input lines (overrides -n)
     #[arg(short = 'b', long)]
     numbered_nonblank: bool,
@@ -73,7 +65,7 @@ pub struct Opts {
     config: <Config as ClapSerde>::Opt,
 }
 
-#[derive(ClapSerde, Deserialize)]
+#[derive(ClapSerde)]
 // ClapSerde’s proc macros must be kept separate
 #[rustfmt::skip]
 #[derive(Debug)]
@@ -81,6 +73,14 @@ pub struct Config {
     /// Level of framing around each file. Repeat for bigger frame
     #[arg(short, long, action=ArgAction::Count)]
     frame: u8,
+
+    /// Squeeze consecutive blank lines into one
+    #[arg(short, long)]
+    squeeze: bool,
+
+    /// Show line endings
+    #[arg(short = 'e', long = "endings")]
+    show_line_endings: bool,
 }
 
 #[derive(Parser, Debug)]
@@ -189,8 +189,8 @@ impl Syncat {
             }
 
             let lines = filter::git(&self.opts, lines, path);
-            let lines = filter::squeeze_blank_lines(&self.opts, lines);
-            let lines = filter::line_endings(&self.opts, lines);
+            let lines = filter::squeeze_blank_lines(&self.config, lines);
+            let lines = filter::line_endings(&self.config, lines);
 
             Ok(lines)
         }
