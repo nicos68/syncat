@@ -38,10 +38,6 @@ pub struct Opts {
     #[arg(short = 'b', long)]
     numbered_nonblank: bool,
 
-    /// Number all input lines
-    #[arg(short, long)]
-    numbered: bool,
-
     /// Prints a parsed s-expression, for debugging and theme creation
     #[arg(long)]
     dev: bool,
@@ -81,6 +77,10 @@ pub struct Config {
     /// Show line endings
     #[arg(short = 'e', long = "endings")]
     show_line_endings: bool,
+
+    /// Number all input lines
+    #[arg(short, long)]
+    numbered: bool,
 }
 
 #[derive(Parser, Debug)]

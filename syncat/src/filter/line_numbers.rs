@@ -3,11 +3,11 @@ use crate::{Config, Opts};
 
 pub fn line_numbers<'a>(
     &Opts {
-        numbered_nonblank,
-        numbered,
-        ..
+        numbered_nonblank, ..
     }: &Opts,
-    &Config { frame, .. }: &Config,
+    &Config {
+        frame, numbered, ..
+    }: &Config,
 ) -> impl 'a + FnMut(Vec<Line>) -> Vec<Line> {
     let mut line_number = 0usize;
     let mut skip_next = false;
