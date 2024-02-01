@@ -4,13 +4,12 @@ use terminal_size::terminal_size;
 
 pub fn frame_header(
     (index, _count): (usize, usize),
-    &Opts {
-        git,
+    &Opts { git, .. }: &Opts,
+    &Config {
+        frame,
+        numbered,
         numbered_nonblank,
         ..
-    }: &Opts,
-    &Config {
-        frame, numbered, ..
     }: &Config,
     source: Vec<Line>,
     path: Option<&Path>,
@@ -85,13 +84,12 @@ pub fn frame_header(
 
 pub fn frame_footer(
     (index, count): (usize, usize),
-    &Opts {
-        git,
+    &Opts { git, .. }: &Opts,
+    &Config {
+        frame,
+        numbered,
         numbered_nonblank,
         ..
-    }: &Opts,
-    &Config {
-        frame, numbered, ..
     }: &Config,
     source: Vec<Line>,
     _path: Option<&Path>,

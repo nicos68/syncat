@@ -34,10 +34,6 @@ pub struct Opts {
     #[arg(short, long)]
     git: bool,
 
-    /// Number non-empty input lines (overrides -n)
-    #[arg(short = 'b', long)]
-    numbered_nonblank: bool,
-
     /// Prints a parsed s-expression, for debugging and theme creation
     #[arg(long)]
     dev: bool,
@@ -45,10 +41,6 @@ pub struct Opts {
     /// The language to use to parse the files
     #[arg(short, long)]
     language: Option<String>,
-
-    /// Soft-wrap lines at a fixed width
-    #[arg(short, long)]
-    wrap: Option<usize>,
 
     /// Files to parse and print
     #[arg(name = "FILE")]
@@ -81,6 +73,14 @@ pub struct Config {
     /// Number all input lines
     #[arg(short, long)]
     numbered: bool,
+
+    /// Number non-empty input lines (overrides -n)
+    #[arg(short = 'b', long)]
+    numbered_nonblank: bool,
+
+    /// Soft-wrap lines at a fixed width
+    #[arg(short, long)]
+    wrap: Option<usize>,
 }
 
 #[derive(Parser, Debug)]
@@ -201,7 +201,7 @@ impl Syncat {
         sources: impl IntoIterator<Item = Result<Source<'a>>> + ExactSizeIterator,
     ) -> crate::Result<()> {
         let count = sources.len();
-        let mut line_numbers = filter::line_numbers(&self.opts, &self.config);
+        let mut line_numbers = filter::line_numbers(&self.config);
         for (index, source) in sources.into_iter().enumerate() {
             let Source {
                 language,
@@ -228,7 +228,7 @@ impl Syncat {
                         &self.meta_style,
                     );
                     for line in &lines {
-                        print!("{}", line.to_string(&self.meta_style, self.opts.wrap));
+                        print!("{}", line.to_string(&self.meta_style, self.config.wrap));
                     }
                     let _ = filter::frame_footer(
                         (index, count),

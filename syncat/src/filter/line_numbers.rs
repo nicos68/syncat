@@ -1,12 +1,12 @@
 use crate::line::Line;
-use crate::{Config, Opts};
+use crate::Config;
 
 pub fn line_numbers<'a>(
-    &Opts {
-        numbered_nonblank, ..
-    }: &Opts,
     &Config {
-        frame, numbered, ..
+        frame,
+        numbered,
+        numbered_nonblank,
+        ..
     }: &Config,
 ) -> impl 'a + FnMut(Vec<Line>) -> Vec<Line> {
     let mut line_number = 0usize;
